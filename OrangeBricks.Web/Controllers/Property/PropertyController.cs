@@ -1,0 +1,157 @@
+﻿using System.Collections;
+using System.Linq;
+using System.Web.Mvc;
+using Microsoft.AspNet.Identity;
+using OrangeBricks.Web.Attributes;
+using OrangeBricks.Web.Controllers.Property.Builders;
+using OrangeBricks.Web.Controllers.Property.Commands;
+using OrangeBricks.Web.Controllers.Property.ViewModels;
+using OrangeBricks.Web.Models;
+using System;
+
+namespace OrangeBricks.Web.Controllers.Property
+{
+    public class PropertyController : Controller
+    {
+        private readonly IOrangeBricksContext _context;
+
+        public PropertyController(IOrangeBricksContext context)
+        {
+            _context = context;
+        }
+
+        [Authorize]
+        public ActionResult Index(PropertiesQuery query)
+        {
+            var builder = new PropertiesViewModelBuilder(_context);
+            var viewModel = builder.Build(query);
+            
+            return View(viewModel);
+        }
+
+        [OrangeBricksAuthorize(Roles = "Seller")]
+        public ActionResult Create()
+        {
+            var viewModel = new CreatePropertyViewModel();
+
+            viewModel.PossiblePropertyTypes = new string[] { "House", "Flat", "Bungalow" }
+                .Select(x => new SelectListItem { Value = x, Text = x })
+                .AsEnumerable();
+
+            return View(viewModel);
+        }
+
+        [OrangeBricksAuthorize(Roles = "Seller")]
+        [HttpPost]
+        public ActionResult Create(CreatePropertyCommand command)
+        {
+            var handler = new CreatePropertyCommandHandler(_context);
+
+            command.SellerUserId = User.Identity.GetUserId();
+
+            handler.Handle(command);
+
+            ModelState.AddModelError("", "A post with this title already exists.");
+
+            return RedirectToAction("MyProperties");
+        }
+
+        [OrangeBricksAuthorize(Roles = "Seller")]
+        public ActionResult MyProperties()
+        {
+            var builder = new MyPropertiesViewModelBuilder(_context);
+            var viewModel = builder.Build(User.Identity.GetUserId());
+
+            return View(viewModel);
+        }
+
+        [HttpPost]
+        [OrangeBricksAuthorize(Roles = "Seller")]
+        public ActionResult ListForSale(ListPropertyCommand command)
+        {
+            var handler = new ListPropertyCommandHandler(_context);
+
+            handler.Handle(command);
+
+            return RedirectToAction("MyProperties");
+        }
+
+        [OrangeBricksAuthorize(Roles = "Buyer")]
+        public ActionResult MakeOffer(int id)
+        {
+            var builder = new MakeOfferViewModelBuilder(_context);
+            var viewModel = builder.Build(id, User.Identity.GetUserId());
+            return View(viewModel);
+        }
+
+        [OrangeBricksAuthorize(Roles = "Buyer")]
+        public ActionResult BookAppointment(int id)
+        {
+            var builder = new AppointmentViewModelBuilder(_context);
+            var viewModel = builder.Build(id, User.Identity.GetUserId());
+            return View(viewModel);
+        }
+
+        [HttpPost]
+        [OrangeBricksAuthorize(Roles="Buyer")]
+        public ActionResult BookAppointment(BookAppointmentCommand command)
+        {
+            var handler = new BookAppointmentCommandHandler(_context);
+
+            handler.Handle(command);
+
+            return RedirectToAction("Index");
+        }
+
+        [HttpPost]
+        [OrangeBricksAuthorize(Roles = "Buyer")]
+        public ActionResult MakeOffer(MakeOfferCommand command)
+        {
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    var handler = new MakeOfferCommandHandler(_context);
+
+                    command.BuyerUserId = User.Identity.GetUserId();
+
+                    if (!handler.Handle(command)) { ModelState.AddModelError("", "You already placed an offer."); }
+                    else { return RedirectToAction("Index"); }
+                }
+            }
+            catch(Exception ex)
+            {
+                ModelState.AddModelError("", "Adding offer failed.");
+            }
+            var property = _context.Properties.Find(command.PropertyId);
+
+            MakeOfferViewModel model = new MakeOfferViewModel
+            {
+                PropertyId = property.Id,
+                PropertyType=property.PropertyType,
+                StreetName=property.StreetName,
+                Offer=property.SuggestedAskingPrice
+            };
+
+            PropertiesViewModel m = new PropertiesViewModel
+            {
+                Search = "",
+                Properties = new System.Collections.Generic.List<PropertyViewModel>
+                {
+                    new PropertyViewModel
+                    {
+                        Id=property.Id,
+                        PropertyType=property.PropertyType,
+                        StreetName=property.StreetName,
+                        Description=property.Description,
+                        NumberOfBedrooms=property.NumberOfBedrooms,
+                        IsListedForSale=property.IsListedForSale,
+                        SuggestedAskingPrice=property.SuggestedAskingPrice
+                    }
+                }
+            };
+
+            return View("Index", m);
+        }
+    }
+}

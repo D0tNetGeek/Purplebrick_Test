@@ -1,0 +1,61 @@
+﻿@model OrangeBricks.Web.Controllers.Appointments.ViewModels.AppointmentsOnPropertyViewModel
+@{
+    ViewBag.Title = "Appointments on Your Property";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<h2>@ViewBag.Title</h2>
+<p>Here you can see the appointments that have been made on your property.</p>
+<p><strong>Property type:</strong> @Model.PropertyType</p>
+<p><strong>Number of bedrooms:</strong> @Model.NumberOfBedrooms</p>
+<p><strong>Street name:</strong> @Model.StreetName</p>
+@if (Model.HasAppointments)
+{
+    <p>There are @Model.Appointments.Count() appointments on this property...</p>
+
+    foreach (var appointment in Model.Appointments)
+    {
+        <hr />
+        <div>
+            <p><strong>Viewing DateTime: </strong> @appointment.ViewingDateTime</p>
+        </div>
+
+        if (appointment.IsViewing && appointment.Status == 0)
+        {
+            using (Html.BeginForm("Accept", "Appointments"))
+            {
+                @Html.Hidden("PropertyId", Model.PropertyId)
+                @Html.Hidden("AppointmentId", appointment.Id)
+                <p>
+                    <input type="submit" class="btn btn-default" value="Accept Appointment" />
+                </p>
+            }
+
+            using (Html.BeginForm("Reject", "Appointments"))
+            {
+                @Html.Hidden("PropertyId", Model.PropertyId)
+                @Html.Hidden("AppointmentId", appointment.Id)
+                <p>
+                    <input type="submit" class="btn btn-default" value="Reject Appointment" />
+                </p>
+            }
+        }
+        else if((int)appointment.Status == 1)
+        {
+            <div class="alert alert-info" role="alert">
+                Appointment for this property has been accepted.
+            </div>
+        }
+        else if ((int)appointment.Status == 2)
+        {
+            <div class="alert alert-info" role="alert">
+                Appointment for this property has been rejected.
+            </div>
+        }
+    }
+}
+else
+{
+    <div class="alert alert-info" role="alert">
+        This property has no appointments yet!
+    </div>
+}
