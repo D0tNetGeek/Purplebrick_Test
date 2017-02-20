@@ -48,7 +48,8 @@ namespace OrangeBricks.Web.Controllers.Property.Builders
                 Description = property.Description,
                 NumberOfBedrooms = property.NumberOfBedrooms,
                 PropertyType = property.PropertyType,
-                Offers = property.Offers
+                Offers = property.Offers,
+                Appointments = property.Appointments
             };
         }
     }
