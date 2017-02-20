@@ -22,7 +22,7 @@ namespace OrangeBricks.Web.Controllers.Property.Builders
 
             var property = _context.Properties
                 .Where(p => p.Id == id)
-                .Include(x => x.Offers)
+                .Include(x => x.Appointments)
                 .SingleOrDefault();
 
             return new AppointmentViewModel
