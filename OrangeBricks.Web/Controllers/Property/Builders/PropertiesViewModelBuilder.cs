@@ -31,6 +31,7 @@ namespace OrangeBricks.Web.Controllers.Property.Builders
             {
                 Properties = properties
                     .Include(x => x.Offers)
+                    .Include(x=>x.Appointments)
                     .ToList()
                     .Select(MapViewModel)
                     .ToList(),
