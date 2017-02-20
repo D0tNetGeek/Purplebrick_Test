@@ -30,7 +30,31 @@
     <p>@property.NumberOfBedrooms bedroom @property.PropertyType</p>
     <p>@property.Description</p>
 
-    if (property.Offers.Count > 0)
+    if (property.Appointments != null && property.Appointments.Count > 0)
+    {
+        foreach (var appointment in property.Appointments)
+        {
+            if ((int)appointment.Status == 0)
+            {
+                <div class="alert alert-info" role="alert">
+                    Your appointment is pending.
+                </div>
+            }
+            else if ((int)appointment.Status == 1)
+            {
+                <div class="alert alert-info" role="alert">
+                    Your appointment is accepted.
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-info" role="alert">
+                    Your appointment is rejected.
+                </div>
+            }
+        }
+    }
+    else if (property.Offers.Count > 0)
     {
         foreach (var offer in property.Offers)
         {
