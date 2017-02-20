@@ -8,6 +8,7 @@ namespace OrangeBricks.Web.Models
         [Key]
         public int Id { get; set; }
         public int PropertyId { get; set; }
+        [Column(TypeName = "DateTime2")]
         public DateTime ViewingDateTime { get; set; }
         public string BuyerUserId { get; set; }
         public bool IsViewing { get; set; }
