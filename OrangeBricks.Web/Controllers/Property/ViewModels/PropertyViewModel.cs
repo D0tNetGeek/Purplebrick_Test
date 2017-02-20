@@ -13,5 +13,6 @@ namespace OrangeBricks.Web.Controllers.Property.ViewModels
         public bool IsListedForSale { get; set; }
         public int SuggestedAskingPrice { get; set; }
         public ICollection<Offer> Offers { get; set; }
+        public ICollection<Appointment> Appointments { get; set; }
     }
 }
