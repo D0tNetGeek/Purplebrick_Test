@@ -92,13 +92,30 @@ namespace OrangeBricks.Web.Controllers.Property
             return View(viewModel);
         }
 
-        [HttpPost]
-        [OrangeBricksAuthorize(Roles="Buyer")]
         public ActionResult BookAppointment(BookAppointmentCommand command)
         {
-            var handler = new BookAppointmentCommandHandler(_context);
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    var handler = new BookAppointmentCommandHandler(_context);
 
-            handler.Handle(command);
+                    command.BuyerUserId = User.Identity.GetUserId();
+
+                    if (!handler.Handle(command))
+                    {
+                        ModelState.AddModelError("", "You already booked an appointment.");
+                    }
+                    else
+                    {
+                        return RedirectToAction("Index");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", "Adding appointment failed.");
+            }
 
             return RedirectToAction("Index");
         }
